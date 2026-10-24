@@ -47,3 +47,58 @@ Si el token fuera el agumento `curl` (`curl "https://...token=..."`), cualquier 
 ### ¿Que es lo que responde duckDNS?
 - 'OK': La actulizacion se hico bien.
 - 'KO': hubo un problema. Casi siempre es el tocke incorrecto o un nombre de dominipo mal escrito.
+
+## Instalacion
+```bash
+sudo cp duckdns-update.sh /usr/local/bin/duckdns-update.sh
+sudo chmod 700 /usr/local/bin/duckdns-update.sh```
+
+Con 'chmod 700'm siki el propietario puede leer y ejecutar el archivo, lo que protege el tokende otros usuarios.
+
+## Cómo probarlo
+
+ ```bash
+/usr/local/bin/duckdns-update.sh
+cat ~/duckdns.log
+```
+## Automatizarlo con cron
+
+```bash
+crontab -e
+```
+
+*/5 * * * * /usr/local/bin/duckdns-update.sh >/dev/null 2>&1
+*/5 * * * * Lo ejecuta cada 5 minutos.
+>/dev/null 2>&1 descarta la salida de la terminal. El resultado real queda guardado en `~/duckdns.log`.
+
+### ¿Cómo sé que el cron funciona?
+
+Cada ejecución **sobrescribe** `~/duckdns.log`, así que la fecha de modificación del archivo indica cuándo se ejecutó el script por última vez:
+
+```bash
+ls -l ~/duckdns.log
+cat ~/duckdns.log
+```
+ 
+Si la fecha es de hace pocos minutos y el contenido es `OK`, todo va bien.
+ 
+## Limitaciones conocidas
+ 
+- **`-k` desactiva la verificación del certificado.** Con DuckDNS no hace falta, porque su certificado es válido, y debilita la conexión: permitiría un ataque de intermediario. Quitar el `-k` es seguro y recomendable.
+- **El log se sobrescribe en cada ejecución.** Solo conserva la última respuesta, sin historial. Si hay un `KO` y luego un `OK`, el fallo se pierde.
+- **No avisa si falla.** Si DuckDNS responde `KO`, nadie se entera.
+- **No tiene tiempo máximo de espera.** Si DuckDNS no responde, `curl` puede quedarse esperando mucho tiempo.
+- **El token está dentro del script.** Es sencillo, pero quien pueda leer el archivo puede ver el token.
+- **Los nombres tienen que coincidir exactamente** con los de DuckDNS. Una letra de diferencia produce `KO`.
+- **No funciona con CGNAT.** Si el operador no da una IP pública real, DuckDNS apuntará a una IP que no es accesible desde fuera.
+## Posibles mejoras
+ 
+- Quitar `-k` y añadir `--max-time 20`.
+- Añadir fecha a cada respuesta y guardarla con `>>` para tener historial.
+- Registrar los errores con `logger` para verlos con `journalctl`.
+- Enviar un correo si la respuesta no es `OK`.
+- Separar el token en un archivo de configuración con permisos `600`.
+
+
+
+Debe aparecer 'OK'. Para comprobar que detecta errores, cambia un carácter del token y repite la prueba: debe aparecer KO
