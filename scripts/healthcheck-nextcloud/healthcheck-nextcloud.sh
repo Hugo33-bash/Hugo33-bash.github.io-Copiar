@@ -56,7 +56,7 @@ check_service() {
         log "${name} OK (HTTP ${HTTP_CODE})"
         # Si antes estaba caído y ahora responde, avisa de la recuperación
         if [ -f "${state_file}" ]; then
-            send_alert "✅ ${name} recuperado" "${name} ha vuelto a responder correctamente (HTTP ${HTTP_CODE}) a las ${TIMESTAMP}."
+            send_alert " ${name} recuperado" "${name} ha vuelto a responder correctamente (HTTP ${HTTP_CODE}) a las ${TIMESTAMP}."
             rm -f "${state_file}"
         fi
         echo "OK"
@@ -64,7 +64,7 @@ check_service() {
         log "${name} FALLO (HTTP ${HTTP_CODE})"
         # Solo avisa la primera vez que detecta el fallo, no cada 5 minutos
         if [ ! -f "${state_file}" ]; then
-            send_alert "🔴 ${name} no responde" "${name} no está respondiendo correctamente.\n\nURL: ${url}\nCódigo HTTP recibido: ${HTTP_CODE}\nHora: ${TIMESTAMP}"
+            send_alert " ${name} no responde" "${name} no está respondiendo correctamente.\n\nURL: ${url}\nCódigo HTTP recibido: ${HTTP_CODE}\nHora: ${TIMESTAMP}"
             touch "${state_file}"
         fi
         echo "FALLO (HTTP ${HTTP_CODE})"
