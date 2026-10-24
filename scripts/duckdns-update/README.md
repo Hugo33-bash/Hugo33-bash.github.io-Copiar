@@ -21,14 +21,23 @@ echo "url=https://www.duckdns.org/update?domains=tu-subdominio,otro-subdominio&t
 ```
 ## Explicación
 `#!/bin/bash` Indica al sistema dearchivos que se ejecuta en bash.
+<br/>
 `echo "url=..."`Escribe una linea cone formato 'url=Direccion', que es lo que 'curl' espera leer de un archivo de configuración.
+<br/>
 `domains=a,b` Subdominios a actulizar sin .duckdns.org separados por comas y sin espacios. Una sola llamada actuliza todos.
+<br/>
 `token=...` Credencial d mi cuenta DuckDNS.
+<br/>
 `ip=` Al dejar la IP vacía, DuckDNS usa la IP desde la que llega la petición, es decir, mi IP pública actual. No hace falta averiguarla.
+<br/>
 | `\` | Continúa la orden en la línea siguiente, solo para que sea más legible. |
+<br/>
 | `\|` (tubería) | Envía lo que escribe `echo` como entrada de `curl`. |
+<br/>
 | `curl -K -` | `-K` indica que la configuración viene de un archivo, y el `-` significa "léelo de la entrada estándar". Por eso la URL llega por la tubería. |
+<br/>
 | `-o ~/duckdns.log` | Guarda la respuesta de DuckDNS en `~/duckdns.log` en vez de mostrarla por pantalla. |
+<br/>
 | `-k` | Desactiva la comprobación del certificado HTTPS (ver [limitaciones](#limitaciones-conocidas)). |
 
 ### ¿Por qué pàsar la URL por la tubería?
