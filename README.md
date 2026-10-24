@@ -50,6 +50,12 @@ flowchart TD
     PVE --> NPM
     PVE --> PBS[VM 103<br/>Proxmox Backup Server]
     PBS --> HDD[(HDD 1 TB<br/>datastore de backups)]
+    PVE --> ZFS[(ZFS RAID1<br/>espejo)]
+    PVE --> LVM[(LVM)]
+    ZFS -.-> NC
+    ZFS -.-> MC
+    ZFS -.-> PBS
+    LVM -.-> NPM
 ```
 
 ---
