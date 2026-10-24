@@ -1,6 +1,6 @@
 # DuckDns-update
 
-Es un script que funciona en basj que mantiene actualizado tu direccion IP pública de mis dominios de [DuckDNS].
+Es un script que funciona en bash que mantiene actualizado tu direccion IP pública de mis dominios de [DuckDNS].
 
 # ¿Qué problema resuelve?
 
