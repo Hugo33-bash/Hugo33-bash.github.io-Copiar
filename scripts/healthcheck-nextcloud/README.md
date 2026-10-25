@@ -14,11 +14,11 @@ Si Nextcloud o Collabora sea caen, no me entero hasta que intento usarlo. Este e
 
 ```mermaid
 flowchart TD
-    A[cron cada 5 min] --> B[curl a la URL del servicio]
+    A[cron cada 5 minutos] --> B[Curl a la URL de Nextcloud (servicio) ]
     B --> C{¿Responde HTTP 200?}
-    C -- Sí --> D{¿Existe el archivo de estado?}
-    D -- Sí --> E[Correo de recuperación<br/>y borra el archivo de estado]
+    C -- Si --> ¿Existe el archivo de estado?
+    D -- Si --> E[Correo de recuperación <br/>y borra el archivo de estado]
     D -- No --> F[Solo escribe en el log]
-    C -- No --> G{¿Existe el archivo de estado?}
-    G -- No --> H[Correo de caída<br/>y crea el archivo de estado]
-    G -- Sí --> I[Solo escribe en el log]
+    C -- No --> G[¿Existe el archivo de estado?]
+    G -- No --> H[Correo de caida<br/> y crea el archivo de estado]
+    G -- Si --> I[Solo escribe el log]
