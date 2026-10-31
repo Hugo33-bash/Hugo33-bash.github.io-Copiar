@@ -55,6 +55,7 @@ flowchart TD
     PVE --> ZFS[(ZFS RAID1<br/>espejo)]
     PVE --> LVM[(LVM)]
     ZFS -.-> NC
+    ZFS -.-> FTP
     ZFS -.-> MC
     ZFS -.-> PBS
     LVM -.-> NPM
