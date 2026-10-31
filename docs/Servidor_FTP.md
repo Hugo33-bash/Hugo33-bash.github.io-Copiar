@@ -214,27 +214,29 @@ Los pasos están en la [sección 10.6](#106-apparmor-y-los-ficheros-de-tls).
 
 ```bash
 sudo proftpd -t && sudo systemctl restart proftpd
-```
+## 7. Cortafuegos y router
 
 ### 7.1 En el servidor (ufw)
- 
+
 ```bash
 sudo ufw allow 2221/tcp
 sudo ufw allow 50000:50100/tcp
 sudo ufw enable
 sudo ufw status
 ```
+
 ### 7.2 En el router (reenvío de puertos)
 
-| Puertos externos | Protocolo | IP destino | Puertos interno |
-| --- | --- | --- |
-| 2221  | TCP | 192.168.50.24 | 2221 |
-| 50000-50100  | TCP | 192.168.50.24 | 50000-50100 |
+| Puerto externo | Protocolo | IP destino | Puerto interno |
+|---|---|---|---|
+| 2221 | TCP | 192.168.50.24 | 2221 |
+| 50000-50100 | TCP | 192.168.50.24 | 50000-50100 |
 
 Para que el nombre `homelab-demo.duckdns.org` apunte siempre a tu IP pública, mantén el cliente de actualización de DuckDNS en ejecución (por ejemplo, con una tarea de `cron`).
 
-Bloquea las IPs que fallan el inicio de sesión varias veces seguidas.
+## 8. Protección con fail2ban
 
+Bloquea las IPs que fallan el inicio de sesión varias veces seguidas.
 ```bash
 sudo apt install fail2ban -y
 sudo nano /etc/fail2ban/jail.local
