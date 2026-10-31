@@ -225,6 +225,7 @@ sudo ufw enable
 sudo ufw status
 ```
 ### 7.2 En el router (reenvío de puertos)
+
 | Puertos externos | Protocolo | IP destino | Puertos interno |
 | --- | --- | --- |
 | 2221  | TCP | 192.168.50.24 | 2221 |
