@@ -321,6 +321,7 @@ sudo apparmor_parser -r /etc/apparmor.d/proftpd
 ```bash
 sudo journalctl -u proftpd -n 30
 sudo journalctl -k | grep -i denied | tail
+```
 
 **Renovación del certificado:** las reglas se definen por ruta, no por contenido. Si renuevas el certificado con **los mismos nombres de fichero**, no hace falta tocar AppArmor: basta con reiniciar ProFTPD.
 
