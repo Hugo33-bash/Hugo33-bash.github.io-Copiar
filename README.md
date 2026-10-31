@@ -37,8 +37,7 @@ Practicar el trabajo real de un administrador de sistemas:
 
 ## Arquitectura
 
-```mermaid
-flowchart TD
+```flowchart TD
     Internet((Internet)) --> DNS[DuckDNS<br/>DNS dinámico]
     DNS --> NPM[LXC 102<br/>Nginx Proxy Manager<br/>HTTPS]
     DNS --> FTP
@@ -59,6 +58,10 @@ flowchart TD
     ZFS -.-> MC
     ZFS -.-> PBS
     LVM -.-> NPM
+    FTP == backup ==> HDD
+    NPM == backup ==> HDD
+    MC == backup ==> HDD
+    NC == backup ==> HDD
 ```
 
 ---
