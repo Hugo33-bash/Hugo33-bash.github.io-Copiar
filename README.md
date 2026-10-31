@@ -71,7 +71,7 @@ flowchart TD
 | 103 | VM | Proxmox Backup Server 4.2 (instalado desde ISO) | Copias de seguridad de máquinas virtuales y contenedores |
 | — | VM | Servidor de Minecraft (Ubuntu Server) | Servidor de juego |
 | — | Docker | Collabora Online (`collabora/code`) | Edición de documentos dentro de Nextcloud |
-| - | VM | Servidor FTP | - |
+| 104 | VM | Servidor FTP | Subir ficheros |
 
 **Detalles técnicos a destacar**
 
