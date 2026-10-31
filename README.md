@@ -37,10 +37,10 @@ Practicar el trabajo real de un administrador de sistemas:
 
 ## Arquitectura
 
-```mermaid
-flowchart TD
+```flowchart TD
     Internet((Internet)) --> DNS[DuckDNS<br/>DNS dinámico]
     DNS --> NPM[LXC 102<br/>Nginx Proxy Manager<br/>HTTPS]
+    DNS --> FTP
     NPM --> NC[VM 100<br/>Nextcloud]
     NPM --> COL[Collabora Online<br/>contenedor Docker]
     NC --- COL
@@ -49,6 +49,7 @@ flowchart TD
     PVE --> MC[VM<br/>Servidor Minecraft]
     PVE --> NPM
     PVE --> PBS[VM 103<br/>Proxmox Backup Server]
+    PVE --> FTP[VM 104<br/>Servidor FTP<br/>ProFTPD]
     PBS --> HDD[(HDD 1 TB<br/>datastore de backups)]
     PVE --> ZFS[(ZFS RAID1<br/>espejo)]
     PVE --> LVM[(LVM)]
@@ -69,6 +70,7 @@ flowchart TD
 | 103 | VM | Proxmox Backup Server 4.2 (instalado desde ISO) | Copias de seguridad de máquinas virtuales y contenedores |
 | — | VM | Servidor de Minecraft (Ubuntu Server) | Servidor de juego |
 | — | Docker | Collabora Online (`collabora/code`) | Edición de documentos dentro de Nextcloud |
+| - | VM | Servidor FTP | - |
 
 **Detalles técnicos a destacar**
 
@@ -121,8 +123,8 @@ flowchart TD
 - [x] Scripts de monitorización y alertas por correo
 - [x] UFW y fail2ban en los servidores
 - [ ] Autenticación SSH solo con clave y sin acceso directo de root
-- [ ] Revisar firewall y fail2ban en el propio host Proxmox
-- [ ] Prueba de restauración de un backup, documentada paso a paso
+- [x] Revisar firewall y fail2ban en el propio host Proxmox
+- [x] Prueba de restauración de un backup, documentada paso a paso
 - [ ] Monitorización con Zabbix o Grafana + Prometheus
 
 ---
