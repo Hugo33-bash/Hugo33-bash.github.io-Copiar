@@ -37,7 +37,8 @@ Practicar el trabajo real de un administrador de sistemas:
 
 ## Arquitectura
 
-```flowchart TD
+```mermaid
+flowchart TD
     Internet((Internet)) --> DNS[DuckDNS<br/>DNS dinámico]
     DNS --> NPM[LXC 102<br/>Nginx Proxy Manager<br/>HTTPS]
     DNS --> FTP
