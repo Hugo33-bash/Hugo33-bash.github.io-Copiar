@@ -1,24 +1,27 @@
 # Servidor FTP con ProFTPD
-Guia paso a paso para montar un servidor FTP en Ubuntu Server 24.04 con **ProFTPD** uusarios por grupos, jaula chroot acceso anónimo de solo lectura, TLS y proteccion con fail2ban.
+Guía paso a paso para montar un servidor FTP en Ubuntu Server 24.04 con **ProFTPD**: usuarios por grupos, jaula chroot, acceso anónimo de solo lectura, TLS y protección con fail2ban.
 
-> **Valores ficticios.** IPs, dominio, usuario y purtos son ejemplos. '<Contraseña segurad>': elige las tuyas.
+> **Valores ficticios.** IPs, dominio, usuario y puertos son ejemplos. `<Contraseña segura>`: elige las tuyas.
 
 ## Datos del ejemplo
 | Dato | Valor |
-| Maquina | VM 104 en Proxmox, hostname 'ftp-demo' |
-| SO | Ubutnu Server 24.04 LTS |
-| IP | '192.168.50.24' |
-| Dominio | 'homelab-demo.duckdns.org` |
-| Puerto de control | '50000-50100' |
-|Raiz del FTP | '/srv/ftp'|
+|---|---|
+| Máquina | VM 104 en Proxmox, hostname `ftp-demo` |
+| SO | Ubuntu Server 24.04 LTS |
+| IP | `192.168.50.24` |
+| Dominio | `homelab-demo.duckdns.org` |
+| Puerto de control | `2221` |
+| Puertos pasivos | `50000-50100` |
+| Raíz del FTP | `/srv/ftp` |
 
-## Que vamos a conseguir
+## Qué vamos a conseguir
 
 | Usuarios | Grupo | Carpetas accesibles |
+|---|---|---|
 | ftpadmin | - | Todas (es el propietario) |
-| 'dev1', 'dev2' | 'dev' | 'desarrollo' y 'publico'|
-| 'tecnico1' | 'sistemas' | 'sistemas' y 'publico' |
-| 'anonymous' | - | Solo 'publico' en solo lectura |
+| `dev1`, `dev2` | `dev` | `desarrollo` y `publico` |
+| `tecnico1` | `sistemas` | `sistemas` y `publico` |
+| `anonymous` | - | Solo `publico` en solo lectura |
 
 ## 1. Instalación 
 
@@ -43,7 +46,7 @@ sudo groupadd sistemas
 sudo groupadd ftpusers   # todos los usuarios con acceso a la carpeta pública
  
 # Administrador del FTP
-sudo useradd ftpadmin -s /bin/false -M -N
+sudo useradd ftpadmin -s /bin/false -M
  
 # Desarrolladores
 sudo useradd dev1 -s /bin/false -g dev -G ftpusers -M -N
@@ -57,14 +60,15 @@ sudo passwd ftpadmin
 sudo passwd dev1
 sudo passwd dev2
 sudo passwd tecnico1
+```
 
-**Que singnifica cada accion**
+**Qué significa cada acción**
 | Opción | Efecto |
 |---|---|
-| '-s /bin/false' | El usuario no puede abrir una shell: Solo sirve para FTP'
-| '-M' | No crea carpeta '/home' |
-| '-N' | No crea grupo |
-| '-g' / '-G' | Grupo principal / grupo secundario |
+| `-s /bin/false` | El usuario no puede abrir una shell: solo sirve para FTP |
+| `-M` | No crea carpeta `/home` |
+| `-N` | No crea grupo |
+| `-g` / `-G` | Grupo principal / grupo secundario |
 
 > `useradd` **no asigna contraseña**. Sin el `passwd` posterior, la cuenta no puede iniciar sesión.
 
@@ -91,6 +95,7 @@ Haz una copia de seguridad y edita el fichero:
 ```bash
 sudo cp /etc/proftpd/proftpd.conf /etc/proftpd/proftpd.conf.bak
 sudo nano /etc/proftpd/proftpd.conf
+```
 
 Deja estas directivas (el resto del fichero puede quedar por defecto):
 
@@ -146,15 +151,15 @@ AllowOverwrite       on
 </Anonymous>
 ```
 
-**Explicacíon de las directivas clave**
-| Directiva | Que hace |
+**Explicación de las directivas clave**
+| Directiva | Qué hace |
 |---|---|
-| 'DefaultRoot /srv/ftp' | Chroot: el usuario ve '/srv/ftp' como si fuera '/'. No puedo salir al resto del sistema |
-| 'RequireValidShell off' | Por defecto ProFTPD rechaza usuarios cuya shell no esté en '/etc/shells'. Con '/bin/false' hace falta desactivarlo. |
-| 'PassivePort' | Rango Fijo de puertos en modo pasivo, **Nota:** estos mismos puertos luego hay que abrirlos en el router |
-| 'MasqueradeAddress' | va detras de NAT, y se utiliza para definir el nombre de domino o ip publica.
-| 'AllowGroup OR' | es suficiente con cumplir las condiciones (ser 'ftpadmin' **o** estar 'dev' o 'sistemas') |
-| '<Anonymous /srv/ftp/publico>' | El anónimo queda enjaulado en 'publico', sin ver las demás carpetas |
+| `DefaultRoot /srv/ftp` | Chroot: el usuario ve `/srv/ftp` como si fuera `/`. No puede salir al resto del sistema |
+| `RequireValidShell off` | Por defecto ProFTPD rechaza usuarios cuya shell no esté en `/etc/shells`. Con `/bin/false` hace falta desactivarlo. |
+| `PassivePorts` | Rango fijo de puertos en modo pasivo. **Nota:** estos mismos puertos luego hay que abrirlos en el router |
+| `MasqueradeAddress` | Va detrás de NAT, y se utiliza para definir el nombre de dominio o IP pública. |
+| `AllowGroup OR` | Es suficiente con cumplir una de las condiciones (ser `ftpadmin` **o** estar en `dev` o `sistemas`) |
+| `<Anonymous /srv/ftp/publico>` | El anónimo queda enjaulado en `publico`, sin ver las demás carpetas |
 
 Valida la sintaxis y reinicia:
 
@@ -166,7 +171,7 @@ ss -tlnp | grep 2221
 ```
 
 ## 6. Cifrado con TLS 
-Es necesario si el usuario se expone a internet.
+Es necesario si el servidor se expone a internet.
 
 ### 6.1 Certificado autofirmado 
 
@@ -176,8 +181,9 @@ sudo openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
   -out /etc/ssl/certs/proftpd.crt \
   -subj "/CN=homelab-demo.duckdns.org"
 sudo chmod 600 /etc/ssl/private/proftpd.key
-``
-## 6.2 Activacion de modulo 
+```
+
+### 6.2 Activación del módulo 
 
 ```apache
 <IfModule mod_tls.c>
@@ -201,19 +207,21 @@ Include /etc/proftpd/tls.conf
 
 ### 6.3 Instalar y cargar el módulo
 
-El paquete base de ProFTPD **no incluye** el modulo TLS:
+El paquete base de ProFTPD **no incluye** el módulo TLS:
 
 ```bash
 sudo apt install proftpd-mod-crypto
 ls /usr/lib/proftpd/ | grep tls    # debe aparecer mod_tls.so
 ```
-Antes de reiniciar, da permiso al perfil de AppArmor para leer el certificado y clave. Son esto, ProFTPD puede no arrancar.
+Antes de reiniciar, da permiso al perfil de AppArmor para leer el certificado y la clave. Sin esto, ProFTPD puede no arrancar.
 Los pasos están en la [sección 10.6](#106-apparmor-y-los-ficheros-de-tls).
 
-### 6.5 Validar y reiniciar
+### 6.4 Validar y reiniciar
 
 ```bash
 sudo proftpd -t && sudo systemctl restart proftpd
+```
+
 ## 7. Cortafuegos y router
 
 ### 7.1 En el servidor (ufw)
@@ -257,29 +265,32 @@ sudo systemctl restart fail2ban
 sudo fail2ban-client status proftpd
 ```
 
-Verificación los logs del servidor:
+Verifica los logs del servidor:
  
 ```bash
 ls -la /srv/ftp/publico
 sudo tail -f /var/log/proftpd/proftpd.log
 ```
 
+## 10. AppArmor: cuando los permisos están bien y aun así falla
+
 ### 10.1 Qué es
 
-**AppArmor** es un modulo de seguridad del kernel de Linux que limita lo que puede hacer cada programa, **aunque el usuario tenga permisos*. Cada programa protegido tiene un *perfil* cin una lista de rutas, capacidades y accessos de red permitidos. Lo que no está en la lista , se bloquea
+**AppArmor** es un módulo de seguridad del kernel de Linux que limita lo que puede hacer cada programa, **aunque el usuario tenga permisos**. Cada programa protegido tiene un *perfil* con una lista de rutas, capacidades y accesos de red permitidos. Lo que no está en la lista, se bloquea.
 
 Por eso hay **dos capas** y ambas deben permitir el acceso:
 
 | Capa | Quién decide | Ejemplo |
-| Permisos Unix ('chmod','chown') | el propietarion de cada archivo | 'drwxrwx--- ftpadmin dev' |
-| AppAmor | El perfil del programa | "'proftpd' solo puede leer '/srv/ftp su el perfil lo dice" |
+|---|---|---|
+| Permisos Unix (`chmod`, `chown`) | El propietario de cada archivo | `drwxrwx--- ftpadmin dev` |
+| AppArmor | El perfil del programa | "`proftpd` solo puede leer `/srv/ftp` si el perfil lo dice" |
 
 Un perfil puede estar en dos modos:
 
 | Modo | Comportamiento |
 | --- | --- |
-| 'enforce' | Bloquea lo no permitido y lo registra en el log |
-| 'complain' | Solo registra, no bloquea (sirve para depuerar) |
+| `enforce` | Bloquea lo no permitido y lo registra en el log |
+| `complain` | Solo registra, no bloquea (sirve para depurar) |
 
 Recarga el perfil y reinicia el servicio:
 
@@ -288,11 +299,11 @@ sudo apparmor_parser -r /etc/apparmor.d/proftpd
 sudo systemctl restart proftpd
 ```
 
-> En este servidor (Ubuntu 24.04) el perfil se llama 'proftpd' y sus reglas locales están en '/etc/apparmor.d/local/proftpd'. En estas versiones puede llamarse 'usr.sbin.proftpd': lista '/etc/apparmor.d/' para comprobarlo.
+> En este servidor (Ubuntu 24.04) el perfil se llama `proftpd` y sus reglas locales están en `/etc/apparmor.d/local/proftpd`. En otras versiones puede llamarse `usr.sbin.proftpd`: lista `/etc/apparmor.d/` para comprobarlo.
 
-### 10.5 Lo que no comviene hacer
-- **No desctivar AppArmor entero** para "arreglarlo": pierdes esa protección en toda el sistema.
-- Para comporbar si de verdad es la causa, pon el perfil en modo `complain` de forma temporal:
+### 10.5 Lo que no conviene hacer
+- **No desactivar AppArmor entero** para "arreglarlo": pierdes esa protección en todo el sistema.
+- Para comprobar si de verdad es la causa, pon el perfil en modo `complain` de forma temporal:
 
 ```bash
 sudo aa-complain /usr/sbin/proftpd
@@ -300,7 +311,7 @@ sudo aa-complain /usr/sbin/proftpd
 sudo aa-enforce /usr/sbin/proftpd   # volver a bloquear
 ```
 
-### 10.6 AppArmor y ficheros de TLSs
+### 10.6 AppArmor y los ficheros de TLS
 
 Reglas necesarias:
  
