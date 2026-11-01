@@ -2,7 +2,29 @@
 Guía paso a paso para montar un servidor FTP en Ubuntu Server 24.04 con **ProFTPD**: usuarios por grupos, jaula chroot, acceso anónimo de solo lectura, TLS y protección con fail2ban.
 
 > **Valores ficticios.** IPs, dominio, usuario y puertos son ejemplos. `<Contraseña segura>`: elige las tuyas.
+## Índice
 
+- [Datos del ejemplo](#datos-del-ejemplo)
+- [Qué vamos a conseguir](#qué-vamos-a-conseguir)
+- [1. Instalación](#1-instalación)
+- [2. Estructura de carpetas](#2-estructura-de-carpetas)
+- [3. Grupos y usuarios](#3-grupos-y-usuarios)
+- [4. Propietarios y permisos](#4-propietarios-y-permisos)
+- [5. Configuración de ProFTPD](#5-configuración-de-proftpd)
+- [6. Cifrado con TLS](#6-cifrado-con-tls)
+  - [6.1 Certificado autofirmado](#61-certificado-autofirmado)
+  - [6.2 Activación del módulo](#62-activación-del-módulo)
+  - [6.3 Instalar y cargar el módulo](#63-instalar-y-cargar-el-módulo)
+  - [6.4 Validar y reiniciar](#64-validar-y-reiniciar)
+- [7. Cortafuegos y router](#7-cortafuegos-y-router)
+  - [7.1 En el servidor (ufw)](#71-en-el-servidor-ufw)
+  - [7.2 En el router (reenvío de puertos)](#72-en-el-router-reenvío-de-puertos)
+- [8. Protección con fail2ban](#8-protección-con-fail2ban)
+- [10. AppArmor: cuando los permisos están bien y aun así falla](#10-apparmor-cuando-los-permisos-están-bien-y-aun-así-falla)
+  - [10.1 Qué es](#101-qué-es)
+  - [10.5 Lo que no conviene hacer](#105-lo-que-no-conviene-hacer)
+  - [10.6 AppArmor y los ficheros de TLS](#106-apparmor-y-los-ficheros-de-tls)
+  
 ## Datos del ejemplo
 | Dato | Valor |
 |---|---|
