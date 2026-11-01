@@ -1,11 +1,6 @@
 # Creación de un servidor SAMBA en Ubuntu Server
 
-| | |
-|---|---|
-| **Autor** | Hugo Lázaro Lahuerta |
-| **Actividad** | Creación y configuración de un servidor SAMBA |
-| **Profesor** | Miguel Martínez Ordoñez |
-| **Fecha** | 14/11/25 |
+> **Valores ficticios.** IPs, usuarios, contraseñas y nombres de carpeta son ejemplos inventados. Usa los tuyos.
 
 ## Índice
 
@@ -88,7 +83,7 @@ Si configuramos SMB1 o versiones anteriores aparecen varios problemas:
 
 ## 2. Configurar la red
 
-Para la interfaz de red hay que modificar el adaptador de red de VirtualBox. En mi caso lo puse en modo **solo anfitrión** (*Host-Only*) para tener conexión entre mi ordenador y la máquina virtual.
+Para la interfaz de red hay que modificar el adaptador de red de VirtualBox. En este ejemplo se pone en modo **solo anfitrión** (*Host-Only*) para tener conexión entre el ordenador y la máquina virtual.
 
 Configuración del adaptador en VirtualBox:
 
@@ -101,9 +96,7 @@ Configuración del adaptador en VirtualBox:
 | Modo promiscuo | Denegar |
 | Cable conectado | Sí |
 
-<!-- Captura: configuración del adaptador de red en VirtualBox -->
-
-Después configuramos la tarjeta de red dentro del servidor, editando `/etc/netplan/01-network-manager-all.yaml` (o el fichero que tengáis en vuestro equipo):
+Después configuramos la tarjeta de red dentro del servidor, editando `/etc/netplan/01-network-manager-all.yaml` (o el fichero que tengas en tu equipo):
 
 ```yaml
 network:
@@ -116,6 +109,18 @@ network:
 ---
 
 ## 3. Configurar un servidor Ubuntu con SAMBA
+
+### Datos del ejemplo
+
+| Dato | Valor |
+|---|---|
+| Hostname | `srv-archivos` |
+| IP (red solo anfitrión) | `192.168.56.110` |
+| Usuario del sistema | `admin01` |
+| Usuario de Samba | `smbuser` |
+| Contraseña de Samba | `Lab_Samba#42` |
+| Carpeta compartida | `/home/admin01/carpeta_compartida` |
+| Nombre del recurso | `carpetacompartida` |
 
 ### 3.1 Instalación de Samba
 
@@ -133,9 +138,7 @@ Para comprobar que Samba funciona bien y sin errores:
 sudo systemctl status samba
 ```
 
-En la captura se ve que el servicio `samba-ad-dc.service` (Samba AD Daemon) aparece como `inactive (dead)` por una condición no cumplida (`exec-condition`). Es normal en este caso: ese servicio es el de controlador de dominio y aquí montamos un servidor de archivos independiente.
-
-<!-- Captura: systemctl status samba -->
+Se ve que el servicio `samba-ad-dc.service` (Samba AD Daemon) aparece como `inactive (dead)` por una condición no cumplida (`exec-condition`). Es normal en este caso: ese servicio es el de controlador de dominio y aquí montamos un servidor de archivos independiente.
 
 ### 3.3 Configuración del firewall
 
@@ -170,37 +173,37 @@ Samba (v6)                 ALLOW       Anywhere (v6)
 Creamos la carpeta que vamos a compartir:
 
 ```bash
-sudo mkdir /home/hugo/carpeta_compartida
+sudo mkdir /home/admin01/carpeta_compartida
 ```
 
 Para compartirla en la red necesitamos crear un usuario en el servidor de archivos:
 
 ```bash
-sudo adduser user_smb
+sudo adduser smbuser
 ```
 
 Comprobamos que se ha creado en `/etc/passwd`:
 
 ```text
-user_smb:x:1001:1001:,,,:/home/user_smb:/bin/bash
+smbuser:x:1001:1001:,,,:/home/smbuser:/bin/bash
 ```
 
 Damos de alta el usuario en Samba y le asignamos una contraseña, que será la que nos permita acceder al directorio compartido desde Windows:
 
 ```bash
-sudo smbpasswd -a user_smb
+sudo smbpasswd -a smbuser
 ```
 
 ```text
 New SMB password:
 Retype new SMB password:
-Added user user_smb.
+Added user smbuser.
 ```
 
-Por último, damos permisos sobre la carpeta para que solo `user_smb` y `hugo` tengan control sobre ella (propietario `user_smb`, grupo `hugo`):
+Por último, damos permisos sobre la carpeta para que solo `smbuser` y `admin01` tengan control sobre ella (propietario `smbuser`, grupo `admin01`):
 
 ```bash
-sudo chown -R user_smb:hugo ./carpeta_compartida/
+sudo chown -R smbuser:admin01 /home/admin01/carpeta_compartida/
 ```
 
 ### 3.5 Configuración de Samba
@@ -216,15 +219,13 @@ Nos vamos al **final del todo** del archivo y añadimos la configuración de la 
 ```ini
 [carpetacompartida]
     comment = Samba en Ubuntu Server
-    path = /home/hugo/carpeta_compartida/
+    path = /home/admin01/carpeta_compartida/
     read only = no
     writable = yes
-    blowsable = yes
+    browsable = yes
     guest ok = no
     public = no
 ```
-
-> ⚠️ **Ojo con el typo:** en mi captura puse `blowsable` en vez de `browsable`. Samba lo ignora y lo avisa en el `testparm` (lo vemos en el paso siguiente). El parámetro correcto es `browsable = yes`.
 
 #### Explicación de parámetros
 
@@ -236,6 +237,8 @@ Nos vamos al **final del todo** del archivo y añadimos la configuración de la 
 | `guest ok = no` | No se permite acceso de invitados |
 | `public = no` | El recurso no es público (hace falta autenticarse) |
 
+> ⚠️ **Ojo al escribir los parámetros:** si te equivocas en el nombre de uno (por ejemplo `blowsable` en vez de `browsable`), Samba lo ignora y solo te avisa al pasar `testparm`. Por eso conviene validar siempre antes de reiniciar.
+
 ### 3.6 Verificar sintaxis y reiniciar
 
 Comprobamos que el archivo de configuración no tiene errores con `testparm`:
@@ -246,8 +249,6 @@ sudo testparm
 
 ```text
 Load smb config files from /etc/samba/smb.conf
-Unknown parameter encountered: "blowsable"
-Ignoring unknown parameter "blowsable"
 Loaded services file OK.
 Weak crypto is allowed by GnuTLS (e.g. NTLM as a compatibility fallback)
 
@@ -256,36 +257,33 @@ Server role: ROLE_STANDALONE
 Press enter to see a dump of your service definitions
 ```
 
-Aquí aparece el aviso del parámetro mal escrito (`blowsable`), pero el fichero carga bien (`Loaded services file OK`) y el rol del servidor es `ROLE_STANDALONE`.
+El fichero carga bien (`Loaded services file OK`) y el rol del servidor es `ROLE_STANDALONE`.
 
-Si no hay errores, comprobamos el estado del servicio `smbd`:
+Si no hay errores, reiniciamos el servicio y comprobamos su estado:
 
 ```bash
+sudo systemctl restart smbd
 sudo systemctl status smbd
 ```
 
 ```text
 ● smbd.service - Samba SMB Daemon
      Loaded: loaded (/usr/lib/systemd/system/smbd.service; enabled; preset: enabled)
-     Active: active (running) since Sat 2025-11-22 15:12:29 UTC; 7s ago
+     Active: active (running) since Fri 2025-11-14 15:12:29 UTC; 7s ago
      Status: "smbd: ready to serve connections..."
 ```
-
-> 💡 Para aplicar cambios en `smb.conf` hay que reiniciar el servicio con `sudo systemctl restart smbd`. El `status` solo sirve para ver que está corriendo.
 
 ### 3.7 Acceder desde Windows
 
 En el explorador de archivos (o en la línea de comandos) escribimos y ejecutamos:
 
 ```text
-\\192.168.56.102\carpeta_compartida
+\\192.168.56.110\carpetacompartida
 ```
 
-Nos pedirá las credenciales de red. Introducimos el usuario y la contraseña que asignamos con `smbpasswd`. En mi caso: usuario `hugo` y contraseña `1234` (solo para pruebas en laboratorio, nunca uses una contraseña así en un servidor real).
+Nos pedirá las credenciales de red. Introducimos el usuario y la contraseña que asignamos con `smbpasswd`. En este ejemplo: usuario `smbuser` y contraseña `Lab_Samba#42`.
 
-Si las credenciales son correctas, se abre la carpeta compartida (en la captura aparece vacía, ya que todavía no habíamos metido nada).
-
-<!-- Capturas: ventana "Seguridad de Windows" pidiendo credenciales y carpeta compartida abierta -->
+Si las credenciales son correctas, se abre la carpeta compartida (al principio aparece vacía, ya que todavía no hemos metido nada).
 
 ---
 
