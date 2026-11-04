@@ -7,6 +7,7 @@ Laboratorio de prácticas de administración de sistemas sobre **Proxmox VE**. A
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 ![Bash](https://img.shields.io/badge/Bash-4EAA25?logo=gnubash&logoColor=white)
 ![Estado](https://img.shields.io/badge/estado-en%20progreso-yellow)
+![Cisco](https://img.shields.io/badge/Cisco-1BA0D7?logo=cisco&logoColor=white)
 
 ---
 
@@ -109,6 +110,12 @@ flowchart TD
 - *Causa:* el contenedor sirve por TLS internamente, aunque se configure lo contrario.
 - *Solución:* usar `https` como esquema del backend en NPM.
 
+**Problema FTP: `550 Permission denied` al listar con login correcto**00000
+- *Síntoma:* FileZilla conecta y autentificaba, pero el listado de directorios, no tenia permitidos leerlos `550 /: Permission denied`.
+- *Diagnostico:* los permisos de `/srv/ftp` eran correctos, ´ls -la´ mostraba que los usuarios eran correctos, los logs de profpd ´/var/log/proftpd/proftpd.log´ no mostraban el motivo del error, pero usando journalctl sí. AppArmor denegaba la lectura de ´/srv/ftp/´.
+- *Causa:* el perfil de AppArmor no incluía la ruta de FTP. AppArmor básicamente lo que hace es limitar lo que puede hacer cada programa, aunque los permisos chmod y los propietarios chown esten bien configurados. 
+- *Solución:*: la solución seria añadir la regla `/srv/ftp/ r,` y `/srv/ftp/** rwkl,` en `/etc/apparmor.d/local/proftpd`, luego recargamos con `apparmor_parser -r /etc/apparmor.d/proftpd` y reiniciamos ProFTPD. Sin necesidad de desactivar AppArmor.
+
 ---
 
 ## Seguridad
@@ -119,7 +126,7 @@ flowchart TD
 - **Firewall:** UFW configurado en cada servidor, con reglas básicas.
 - **Fail2ban:** instalado en los servidores para bloquear intentos repetidos de acceso.
 - **Alertas:** aviso de intentos fallidos de SSH mediante script.
-
+- **FTPS** certificado ssl/tls, para servidor FTP.
 ---
 
 ## Hoja de ruta
