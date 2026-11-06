@@ -4,6 +4,21 @@
 
 Preparar un servidor PBS y conectarlo con Proxmox VE para disponer de un destino centralizado donde almacenar copias de seguridad.
 
+# Índice
+
+1. [Requisitos](#0-requisitos)
+2. [Introducción](#1-introducción)
+3. [Descargar y cargar la ISO](#2-descargar-y-cargar-la-iso)
+4. [Crear la máquina virtual](#3-crear-la-máquina-virtual)
+5. [Instalar Proxmox Backup Server](#4-instalar-proxmox-backup-server)
+6. [Configurar la red](#5-configurar-la-red)
+7. [Crear el almacenamiento de copias](#6-crear-el-almacenamiento-de-copias)
+8. [Comprobar el Datastore](#7-comprobar-el-datastore)
+9. [Añadir PBS a Proxmox VE](#8-añadir-pbs-a-proxmox-ve)
+10. [Programación de Backups](#9-programación-de-backups)
+    - [9.1 Explicación](#91-explicación)
+    - [9.2 Configuración](#92-configuración)
+
 ## 0. Requisitos
 
 Para montar un Servidor de Backups necesitamos un disco duro donde volcar las backups, yo en mi caso usaré un disco de 1TB HDD.
