@@ -1,11 +1,11 @@
 # Mi NAS: nas-practica
 
-Tengo montado un NAS con Nextcloud, collabora y MariaDB en docker, dentro de un maquina vritual con Ubuntu Server en Proxmox.
-En este documento explica cómo lo tengo organizado: qué servicios hay, en que red esta cada uno, donde se guardan los datos y comó se accede desde fuera de casa.
+Tengo montado un NAS con Nextcloud, Collabora y MariaDB en Docker, dentro de una máquina virtual con Ubuntu Server en Proxmox.
+En este documento explico cómo lo tengo organizado: qué servicios hay, en qué red está cada uno, dónde se guardan los datos y cómo se accede desde fuera de casa.
 
-## Indice
+## Índice
 
-1. [Maquina virtual](#maquina-virtual)
+1. [Máquina virtual](#máquina-virtual)
 2. [Arquitectura](#arquitectura)
 3. [Acceso desde internet](#acceso-desde-internet)
 4. [Servicios](#servicios)
@@ -16,7 +16,7 @@ En este documento explica cómo lo tengo organizado: qué servicios hay, en que 
 9. [Cosas que quiero mejorar](#cosas-que-quiero-mejorar)
 10. [Comandos que usé](#comandos-que-usé)
 
-## Maquinas virtual
+## Máquina virtual
 
 | Característica | Valor |
 |---|---|
@@ -32,45 +32,45 @@ En este documento explica cómo lo tengo organizado: qué servicios hay, en que 
 ---
 
 ## Arquitectura
- 
+
 ```mermaid
 flowchart TB
     INTERNET(("Internet"))
     ROUTER["Router<br/>192.168.1.1"]
     LAN["Red local 192.168.1.0/24"]
     NPM["Nginx Proxy Manager<br/>proxy inverso"]
- 
+
     subgraph VM["VM nas-practica · Ubuntu Server 26.04 · 192.168.1.41"]
         subgraph DOCKER["Docker"]
             NC["Nextcloud<br/>linuxserver/nextcloud 33.0.5"]
             COL["Collabora CODE<br/>collabora/code"]
             DB[("MariaDB 10.11")]
- 
+
             NET_NC{{"nextcloud-net<br/>172.19.0.0/16"}}
             NET_BB{{"big-bear-nextcloud-ls_default<br/>172.18.0.0/16"}}
             NET_BR{{"bridge (docker0)<br/>172.17.0.0/16"}}
         end
     end
- 
+
     LAN -- "HTTPS :10443" --> NC
     LAN -- ":9980" --> COL
- 
+
     INTERNET -- "HTTPS :443<br/>ejemplo.duckdns.org" --> ROUTER
     ROUTER -- "reenvío de puerto" --> NPM
     NPM -- "reenvía a Nextcloud" --> NC
- 
+
     NC ---|172.19.0.2| NET_NC
     DB ---|172.19.0.3| NET_NC
     NC ---|172.18.0.2| NET_BB
     COL ---|172.17.0.2| NET_BR
     DB ---|172.17.0.3| NET_BR
- 
+
     NC -. "WOPI vía puerto publicado en el host" .-> COL
 ```
 
-Donde mi red local entro por dos puertos de la VM: el 10443 para Nextcloud y el 9980 para Collabora. Desde internet solo tengo abiertos el 443, y las peteciones pasan por Nginx Proxy Manager antes de llegar a Nextcloud.
+Desde mi red local entro por dos puertos de la VM: el 10443 para Nextcloud y el 9980 para Collabora. Desde internet solo tengo abierto el 443, y las peticiones pasan por Nginx Proxy Manager antes de llegar a Nextcloud.
 
-MariaDB no tiene ningún puerto publicados, solo se puede hablar con alla desde dentro de Docker. Nextcloud y MariaDB comparten red `nextcloud-net`. collabora está en otra red, así que no hablan directamente por Docker, sono a traves del puerto 9980 de las VMs.
+MariaDB no tiene ningún puerto publicado, solo se puede hablar con ella desde dentro de Docker. Nextcloud y MariaDB comparten la red `nextcloud-net`. Collabora está en otra red, así que no hablan directamente por Docker, sino a través del puerto 9980 de la VM.
 
 ---
 
@@ -80,14 +80,14 @@ Tengo Nextcloud accesible desde fuera de casa.
 
 | Elemento | Valor |
 | --- | --- |
-| Puerto abierto a internet | ´443´ (HTTPS) |
-| Dominio | éjemplo.duckdns.org (DuckDNS) |
+| Puerto abierto a internet | `443` (HTTPS) |
+| Dominio | ejemplo.duckdns.org (DuckDNS) |
 | Proxy inverso | Nginx Proxy Manager (NPM) |
-|Servicio publicado | Nextcloud |
+| Servicio publicado | Nextcloud |
 
 Uso DuckDNS porque la IP pública de casa puede cambiar, y así siempre entro con el mismo nombre. El dominio que aparece aquí es de ejemplo, el real no lo publico.
 
-Entro internet y Nextcloud hay un proxy inverso, Nginx Proxy Manager. Recibe las peticiones que llegan a 443 y las manda a Nextcloud, así que Nextcloud no está directamente expuesto. NPM no está en esta VM, corre aparte en un contenedor.
+Entre internet y Nextcloud hay un proxy inverso, Nginx Proxy Manager. Recibe las peticiones que llegan al 443 y las manda a Nextcloud, así que Nextcloud no está directamente expuesto. NPM no está en esta VM, corre aparte en un contenedor.
 
 Al estar en internet, Nextcloud es lo más expuesto de todo el laboratorio. Lo que quiero revisar de esto está en [Cosas que quiero mejorar](#cosas-que-quiero-mejorar).
 
@@ -103,16 +103,17 @@ El puerto 80 de Nextcloud no lo publico, solo se entra por HTTPS.
 
 ---
 
-## Redes Docker 
+## Redes Docker
 
-| RED | Driver | Subred | Contendores (IP) |
+| Red | Driver | Subred | Contenedores (IP) |
+|---|---|---|---|
 | `bridge` (docker0) | bridge | 172.17.0.0/16 | Collabora (172.17.0.2), MariaDB (172.17.0.3) |
 | `big-bear-nextcloud-ls_default` | bridge | 172.18.0.0/16 | Nextcloud (172.18.0.2) |
 | `nextcloud-net` | bridge | 172.19.0.0/16 | Nextcloud (172.19.0.2), MariaDB (172.19.0.3) |
 | `host` | host | - | Ninguno |
 | `none` | null | - | Ninguno |
 
-Una red de Docker funciona como un switch virtual, y cada contenedor tiene una tarjeta de red oir cada red a la que está conectada. Dos contenedores solo se ven directamente si comparten red.
+Una red de Docker funciona como un switch virtual, y cada contenedor tiene una tarjeta de red por cada red a la que está conectado. Dos contenedores solo se ven directamente si comparten red.
 
 | Contenedor | `bridge` | `big-bear-nextcloud-ls_default` | `nextcloud-net` |
 |---|---|---|---|
@@ -125,16 +126,13 @@ Una red de Docker funciona como un switch virtual, y cada contenedor tiene una t
 ## Cómo se comunican los servicios
 
 1. Desde casa entro a Nextcloud por HTTPS al puerto 10443 de la VM. Desde internet entro por el dominio, pasando por NPM.
-2. Nextcloud habla con MariaDB por `nextcloud-net`. Como no es la red `bridge` por defecto, Docker resuelve el nombre del contendor (`mariadb-nextcloud`) sin necesidad de usar IPs.
-3. Nextcloud y Collabora no comparten red, así que se comunican por el puerto 9980 oublicado en la VM.
-El navegador también se conecta directamente a Collabora para cargar el editor.
+2. Nextcloud habla con MariaDB por `nextcloud-net`. Como no es la red `bridge` por defecto, Docker resuelve el nombre del contenedor (`mariadb-nextcloud`) sin necesidad de usar IPs.
+3. Nextcloud y Collabora no comparten red, así que se comunican por el puerto 9980 publicado en la VM. El navegador también se conecta directamente a Collabora para cargar el editor.
 
 ---
 
 ## Almacenamiento
 
-## Almacenamiento
- 
 | Servicio | Origen (en la VM) | Destino (en el contenedor) | Tipo |
 |---|---|---|---|
 | MariaDB | `/var/lib/docker/volumes/mariadb_data/_data` | `/var/lib/mysql` | Volumen de Docker |
@@ -145,16 +143,17 @@ El navegador también se conecta directamente a Collabora para cargar el editor.
 Collabora no guarda estado, así que si borro el contenedor no pierdo nada: los documentos están en Nextcloud. Todo está en el mismo disco que el sistema (la raíz, de 21,5 GB).
 
 ## Detalles del montaje
- 
+
 - MariaDB no tiene el puerto 3306 publicado, así que desde la red local no se puede conectar nadie. Nextcloud llega por `nextcloud-net`. Collabora también podría llegar, lo explico en las mejoras.
 - Nextcloud y MariaDB tienen su propia red, `nextcloud-net`, donde Docker resuelve los nombres de los contenedores. En la red `bridge` por defecto eso no funciona.
 - Nextcloud (`33.0.5`) y MariaDB (`10.11`) tienen una versión concreta. Collabora está en `latest`.
 - La configuración y los datos de Nextcloud están en `/DATA/AppData`, y la base de datos en un volumen de Docker. Así puedo recrear los contenedores sin perder información.
 - Nextcloud no está publicado directamente en internet: el tráfico externo pasa antes por Nginx Proxy Manager.
+
 ---
- 
+
 ## Cosas que quiero mejorar
- 
+
 | Mejora | Por qué |
 |---|---|
 | Quitar MariaDB de la red `bridge` | Solo necesita `nextcloud-net`. Estando también en `bridge`, Collabora puede llegar a su puerto 3306. |
@@ -164,4 +163,3 @@ Collabora no guarda estado, así que si borro el contenedor no pierdo nada: los 
 | Hacer copias de seguridad | Datos y sistema están en el mismo disco y no hay backup automático. Una opción es usar Proxmox Backup Server. |
 | Comprobar que solo está abierto el 443 | El 9980 y el 10443 no deberían estar abiertos a internet. |
 | Proteger mejor el acceso desde internet | Mantener Nextcloud actualizado, activar el doble factor (2FA) y revisar los accesos fallidos. |
- 
