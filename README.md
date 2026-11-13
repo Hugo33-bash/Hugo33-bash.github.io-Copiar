@@ -38,34 +38,51 @@ Practicar el trabajo real de un administrador de sistemas:
 
 ## Arquitectura
 
-```mermaid
 flowchart TD
     Internet((Internet)) --> DNS[DuckDNS<br/>DNS dinámico]
     DNS --> NPM[LXC 102<br/>Nginx Proxy Manager<br/>HTTPS]
     DNS --> FTP
+
     NPM --> NC[VM 100<br/>Nextcloud]
-    NPM --> COL[Collabora Online<br/>contenedor Docker]
+    NPM --> COL[Collabora Online<br/>Contenedor Docker]
+
     NC --- COL
-    NC --- SMB[Samba<br/>mismo servidor]
-    NC --- MariaDB mismo servidor
-    PVE[(Proxmox VE)] --> NC
+    NC --- SMB[Samba<br/>Mismo servidor]
+    NC --- DB[(MariaDB<br/>Mismo servidor)]
+
+    PVE[[Proxmox VE]] --> NC
     PVE --> MC[VM<br/>Servidor Minecraft]
     PVE --> NPM
     PVE --> PBS[VM 103<br/>Proxmox Backup Server]
     PVE --> FTP[VM 104<br/>Servidor FTP<br/>ProFTPD]
-    PBS --> HDD[(HDD 1 TB<br/>datastore de backups)]
-    PVE --> ZFS[(ZFS RAID1<br/>espejo)]
+
+    PBS --> HDD[(HDD 1 TB<br/>Datastore de backups)]
+    PVE --> ZFS[(ZFS RAID1<br/>Espejo)]
     PVE --> LVM[(LVM)]
+
     ZFS -.-> NC
     ZFS -.-> FTP
     ZFS -.-> MC
     ZFS -.-> PBS
     LVM -.-> NPM
-    FTP == backup ==> HDD
-    NPM == backup ==> HDD
-    MC == backup ==> HDD
-    NC == backup ==> HDD
-```
+
+    FTP == Backup ==> HDD
+    NPM == Backup ==> HDD
+    MC == Backup ==> HDD
+    NC == Backup ==> HDD
+
+    %% Estilos para diferenciar capas
+    classDef externo fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#000
+    classDef proxy fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef vms fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef hypervisor fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef storage fill:#eceff1,stroke:#455a64,stroke-width:2px,color:#000
+
+    class Internet,DNS externo
+    class NPM proxy
+    class NC,COL,SMB,DB,MC,PBS,FTP vms
+    class PVE hypervisor
+    class HDD,ZFS,LVM storage
 
 ---
 
