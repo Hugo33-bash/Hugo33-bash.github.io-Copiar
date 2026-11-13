@@ -38,7 +38,6 @@ Practicar el trabajo real de un administrador de sistemas:
 
 ## Arquitectura
 
-
 ```mermaid
 flowchart TD
     Internet(("Internet")) --> DNS["DuckDNS<br/>DNS dinámico"]
@@ -72,18 +71,6 @@ flowchart TD
     NPM ==>|Backup| HDD
     MC ==>|Backup| HDD
     NC ==>|Backup| HDD
-
-    classDef externo fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#000
-    classDef proxy fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
-    classDef vms fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
-    classDef hypervisor fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
-    classDef storage fill:#eceff1,stroke:#455a64,stroke-width:2px,color:#000
-
-    class Internet,DNS externo
-    class NPM proxy
-    class NC,COL,SMB,DB,MC,PBS,FTP vms
-    class PVE hypervisor
-    class HDD,ZFS,LVM storage
 ```
 
 ---
@@ -97,6 +84,7 @@ flowchart TD
 | 103 | VM | Proxmox Backup Server 4.2 (instalado desde ISO) | Copias de seguridad de máquinas virtuales y contenedores |
 | — | VM | Servidor de Minecraft (Ubuntu Server) | Servidor de juego |
 | — | Docker | Collabora Online (`collabora/code`) | Edición de documentos dentro de Nextcloud |
+| — | Docker | MariaDb | Usuarios de NextCloud |
 | 104 | VM | Servidor FTP | Subir ficheros |
 
 **Detalles técnicos a destacar**
@@ -104,7 +92,7 @@ flowchart TD
 - **Backups:** PBS con un disco HDD de 1 TB como almacenamiento dedicado.
 - **Acceso externo:** dominios gestionados con DuckDNS y publicados a través de Nginx Proxy Manager.
 - **Edición de documentos:** Collabora desplegado en un contenedor Docker independiente, con su propio dominio.
-
+- **Base de datos:** MariaDB desplegado en un contendor Docker independiente, dando servicio a NextCloud.
 ---
 
 ## Automatización y scripts
@@ -146,6 +134,7 @@ flowchart TD
 - **Firewall:** UFW configurado en cada servidor, con reglas básicas.
 - **Fail2ban:** instalado en los servidores para bloquear intentos repetidos de acceso.
 - **Alertas:** aviso de intentos fallidos de SSH mediante script.
+- **Segmentacion de redes de Docker:** aislamiento de distintos servicios, como por ejemplo MariaDB y Nextcloud en una sola red.
 - **FTPS** certificado ssl/tls, para servidor FTP.
 ---
 
