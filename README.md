@@ -47,7 +47,7 @@ flowchart TD
     NPM --> COL[Collabora Online<br/>contenedor Docker]
     NC --- COL
     NC --- SMB[Samba<br/>mismo servidor]
-    NC --- MariaDB<br/>mismo servidor
+    NC --- MariaDB mismo servidor
     PVE[(Proxmox VE)] --> NC
     PVE --> MC[VM<br/>Servidor Minecraft]
     PVE --> NPM
