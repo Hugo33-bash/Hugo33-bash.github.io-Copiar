@@ -5,6 +5,9 @@
 **Autor:** Hugo Lázaro Lahuerta
 
 ---
+## Arquitectura
+
+<img width="679" height="717" alt="image" src="https://github.com/user-attachments/assets/1ffba452-fedd-4eb0-9359-79fc0142a9cd" />
 
 ## 1. Qué se construye
 
